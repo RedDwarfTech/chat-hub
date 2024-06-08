@@ -1,0 +1,4 @@
+[infra]
+port=8081
+app_cached_key="global:app:"
+login_failed_key="user:login:failed:"
