@@ -12,7 +12,7 @@ use tokio::{
 };
 
 /// Ask
-///
+/// https://stackoverflow.com/questions/77015804/why-the-event-source-polyfill-did-not-fetch-the-sse-api-data
 /// Ask
 #[utoipa::path(
     context_path = "/infra/user/login",

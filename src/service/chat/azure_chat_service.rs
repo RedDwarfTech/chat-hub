@@ -6,9 +6,7 @@ use std::env;
 use std::error::Error;
 use tokio::sync::mpsc::UnboundedSender;
 
-pub async fn azure_chat(
-    tx: UnboundedSender<SSEMessage<String>>,
-) -> Result<String, Box<dyn Error>> {
+pub async fn azure_chat(tx: UnboundedSender<SSEMessage<String>>) -> Result<String, Box<dyn Error>> {
     let azure_chat_api_base =
         env::var("AZURE_CHAT_API_BASE").expect("AZURE_CHAT_API_BASE must be set");
     let deployment_id = env::var("DEPLOYMENT_ID").expect("DEPLOYMENT_ID must be set");
@@ -42,12 +40,12 @@ async fn chat_completion_example(
         .build()?;
 
     let response = client.chat().create(request).await?;
-    for choice in response.choices {
-        let content = choice.message.content;
-        if content.is_some() {
-            do_msg_send_sync(&content.unwrap(), &tx, "chat");
-        }
+    let msg_string = serde_json::to_string(&response);
+    if let Err(e) = msg_string {
+        error!("serial json failed,{}", e);
+        return Ok("".to_owned());
     }
+    do_msg_send_sync(&msg_string.unwrap(), &tx, "chat");
     Ok("".to_owned())
 }
 
