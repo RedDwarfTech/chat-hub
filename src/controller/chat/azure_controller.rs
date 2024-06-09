@@ -1,5 +1,15 @@
-use actix_web::{post, web, Responder};
-use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
+use crate::{model::req::chat::ask_req::AskReq, service::chat::azure_chat_service::azure_chat};
+use actix_web::{
+    get,
+    http::header::{CacheControl, CacheDirective},
+    web, HttpResponse, Responder,
+};
+use log::error;
+use rust_wheel::common::util::net::{sse_message::SSEMessage, sse_stream::SseStream};
+use tokio::{
+    sync::mpsc::{UnboundedReceiver, UnboundedSender},
+    task,
+};
 
 /// User login
 ///
@@ -11,9 +21,23 @@ use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
         (status = 200, description = "support user login")
     )
 )]
-#[post("/login")]
-pub async fn login() -> impl Responder {
-    return box_actix_rest_response("ok");
+#[get("/stream/chat/ask")]
+pub async fn login(_params: actix_web_validator::Query<AskReq>) -> impl Responder {
+    let (tx, rx): (
+        UnboundedSender<SSEMessage<String>>,
+        UnboundedReceiver<SSEMessage<String>>,
+    ) = tokio::sync::mpsc::unbounded_channel();
+    task::spawn(async move {
+        let output = azure_chat(&tx).await;
+        if let Err(e) = output {
+            error!("handle chat sse req error: {}", e);
+        }
+    });
+    let response = HttpResponse::Ok()
+        .insert_header(CacheControl(vec![CacheDirective::NoCache]))
+        .content_type("text/event-stream")
+        .streaming(SseStream { receiver: Some(rx) });
+    response
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
