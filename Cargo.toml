@@ -28,3 +28,9 @@ async-openai = { version = "0.23.1" }
 tokio = { version = "1.17.0", features = ["full"] }
 reqwest = { version = "0.11.18", features = ["json", "stream"] }
 futures = "0.3.30"
+diesel = { version = "2.1.0", features = [
+    "postgres",
+    "64-column-tables",
+    "chrono",
+    "serde_json",
+] }

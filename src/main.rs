@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate diesel;
+
 use crate::swagger_docs::ApiDoc;
 use actix_web::App;
 use actix_web::HttpServer;
@@ -11,6 +14,7 @@ use utoipa::OpenApi;
 pub mod controller;
 pub mod service;
 pub mod model;
+pub mod common;
 mod swagger_docs;
 mod types;
 
