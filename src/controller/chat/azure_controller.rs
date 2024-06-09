@@ -22,7 +22,7 @@ use tokio::{
     )
 )]
 #[get("/stream/chat/ask")]
-pub async fn login(_params: actix_web_validator::Query<AskReq>) -> impl Responder {
+pub async fn ask(_params: actix_web_validator::Query<AskReq>) -> HttpResponse {
     let (tx, rx): (
         UnboundedSender<SSEMessage<String>>,
         UnboundedReceiver<SSEMessage<String>>,
@@ -41,6 +41,6 @@ pub async fn login(_params: actix_web_validator::Query<AskReq>) -> impl Responde
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/ai/azure").service(login);
+    let scope = web::scope("/ai/azure").service(ask);
     conf.service(scope);
 }

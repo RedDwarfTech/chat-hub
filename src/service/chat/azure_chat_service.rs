@@ -9,7 +9,8 @@ use tokio::sync::mpsc::UnboundedSender;
 pub async fn azure_chat(
     tx: &UnboundedSender<SSEMessage<String>>,
 ) -> Result<String, Box<dyn Error>> {
-    let azure_chat_api_base = env::var("AZURE_CHAT_API_BASE").expect("AZURE_CHAT_API_BASE must be set");
+    let azure_chat_api_base =
+        env::var("AZURE_CHAT_API_BASE").expect("AZURE_CHAT_API_BASE must be set");
     let deployment_id = env::var("DEPLOYMENT_ID").expect("DEPLOYMENT_ID must be set");
     let api_key = env::var("AZURE_OPENAI_KEY").expect("API_KEY must be set");
     let config = AzureConfig::new()
@@ -43,11 +44,13 @@ async fn chat_completion_example(
     let response = client.chat().create(request).await?;
 
     println!("\nResponse:\n");
+    do_msg_send_sync(&"x".to_string(), tx, "ddd");
     for choice in response.choices {
         println!(
             "{}: Role: {}  Content: {:?}",
             choice.index, choice.message.role, choice.message.content
         );
+        do_msg_send_sync(&"x".to_string(), tx, "ddd");
         let content = choice.message.content;
         if content.is_some() {
             do_msg_send_sync(&content.unwrap(), tx, "chat");
