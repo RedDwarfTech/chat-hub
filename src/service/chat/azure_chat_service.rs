@@ -11,7 +11,7 @@ pub async fn azure_chat(
 ) -> Result<String, Box<dyn Error>> {
     let azure_chat_api_base = env::var("AZURE_CHAT_API_BASE").expect("AZURE_CHAT_API_BASE must be set");
     let deployment_id = env::var("DEPLOYMENT_ID").expect("DEPLOYMENT_ID must be set");
-    let api_key = env::var("API_KEY").expect("API_KEY must be set");
+    let api_key = env::var("AZURE_OPENAI_KEY").expect("API_KEY must be set");
     let config = AzureConfig::new()
         .with_api_base(azure_chat_api_base)
         .with_api_version("2023-03-15-preview")
