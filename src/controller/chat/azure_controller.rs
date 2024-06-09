@@ -22,13 +22,13 @@ use tokio::{
     )
 )]
 #[get("/stream/chat/ask")]
-pub async fn ask(_params: actix_web_validator::Query<AskReq>) -> HttpResponse {
+pub async fn ask(params: actix_web_validator::Query<AskReq>) -> HttpResponse {
     let (tx, rx): (
         UnboundedSender<SSEMessage<String>>,
         UnboundedReceiver<SSEMessage<String>>,
     ) = tokio::sync::mpsc::unbounded_channel();
     task::spawn(async move {
-        let output = azure_chat(tx).await;
+        let output = azure_chat(tx, &params.0).await;
         if let Err(e) = output {
             error!("handle chat sse req error: {}", e);
         }

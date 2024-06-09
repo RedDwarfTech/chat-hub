@@ -6,7 +6,9 @@ use std::env;
 use std::error::Error;
 use tokio::sync::mpsc::UnboundedSender;
 
-pub async fn azure_chat(tx: UnboundedSender<SSEMessage<String>>) -> Result<String, Box<dyn Error>> {
+use crate::model::req::chat::ask_req::AskReq;
+
+pub async fn azure_chat(tx: UnboundedSender<SSEMessage<String>>, req: &AskReq) -> Result<String, Box<dyn Error>> {
     let azure_chat_api_base =
         env::var("AZURE_CHAT_API_BASE").expect("AZURE_CHAT_API_BASE must be set");
     let deployment_id = env::var("DEPLOYMENT_ID").expect("DEPLOYMENT_ID must be set");
@@ -17,12 +19,13 @@ pub async fn azure_chat(tx: UnboundedSender<SSEMessage<String>>) -> Result<Strin
         .with_deployment_id(deployment_id)
         .with_api_key(api_key);
     let client = Client::with_config(config);
-    return chat_completion_example(&client, tx).await;
+    return chat_completion(&client, tx, req).await;
 }
 
-async fn chat_completion_example(
+async fn chat_completion(
     client: &Client<AzureConfig>,
     tx: UnboundedSender<SSEMessage<String>>,
+    req: &AskReq
 ) -> Result<String, Box<dyn Error>> {
     let request = CreateChatCompletionRequestArgs::default()
         .max_tokens(512u16)
@@ -33,7 +36,7 @@ async fn chat_completion_example(
                 .build()?
                 .into(),
             ChatCompletionRequestUserMessageArgs::default()
-                .content("How does large language model work?")
+                .content(req.prompt.as_str())
                 .build()?
                 .into(),
         ])
