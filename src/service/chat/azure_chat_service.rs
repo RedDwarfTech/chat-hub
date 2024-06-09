@@ -30,6 +30,7 @@ async fn chat_completion(
     let request = CreateChatCompletionRequestArgs::default()
         .max_tokens(512u16)
         .model("gpt-3.5-turbo")
+        .stream(true)
         .messages([
             ChatCompletionRequestSystemMessageArgs::default()
                 .content("You are a helpful assistant.")
