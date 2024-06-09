@@ -42,7 +42,7 @@ async fn chat_completion_example(
         ])
         .build()?;
 
-    let response = client.chat().create(request).await?;
+    let _response = client.chat().create(request).await?;
     task::spawn_blocking({
         move || {
             let rt = tokio::runtime::Runtime::new().unwrap();
