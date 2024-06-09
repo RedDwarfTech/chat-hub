@@ -64,11 +64,11 @@ async fn chat_completion_stream(
     req: &AskReq,
 ) -> Result<String, Box<dyn Error>> {
     let request = CreateCompletionRequestArgs::default()
-        .model("gpt-3.5-turbo-instruct")
+        .model("gpt-3.5-turbo")
         .n(1)
         .prompt(req.prompt.as_str())
         .stream(true)
-        .max_tokens(1024_u16)
+        .max_tokens(512u16)
         .build()?;
 
     let mut stream = client.completions().create_stream(request).await?;
