@@ -25,10 +25,10 @@ pub async fn azure_chat(
         .with_deployment_id(deployment_id)
         .with_api_key(api_key);
     let client = Client::with_config(config);
-    return chat_completion_stream(&client, tx, req).await;
+    return chat_completion(&client, tx, req).await;
 }
 
-async fn _chat_completion(
+async fn chat_completion(
     client: &Client<AzureConfig>,
     tx: UnboundedSender<SSEMessage<String>>,
     req: &AskReq,
@@ -58,7 +58,10 @@ async fn _chat_completion(
     Ok("".to_owned())
 }
 
-async fn chat_completion_stream(
+/**
+ * https://github.com/64bit/async-openai/pull/67#issuecomment-1555165805
+ */
+async fn _chat_completion_stream(
     client: &Client<AzureConfig>,
     tx: UnboundedSender<SSEMessage<String>>,
     req: &AskReq,
