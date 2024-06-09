@@ -53,7 +53,6 @@ async fn chat_completion_example(
             do_msg_send_sync(&content.unwrap(), tx, "chat");
         }
     }
-    drop(tx.to_owned());
     Ok("".to_owned())
 }
 
