@@ -12,7 +12,7 @@ use crate::controller::chat::azure_controller;
 #[derive(OpenApi)]
 #[openapi(
     paths(
-        azure_controller::login
+        azure_controller::ask
     ),
     components(
         schemas(
