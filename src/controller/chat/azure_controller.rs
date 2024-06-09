@@ -2,7 +2,7 @@ use crate::{model::req::chat::ask_req::AskReq, service::chat::azure_chat_service
 use actix_web::{
     get,
     http::header::{CacheControl, CacheDirective},
-    web, HttpResponse, Responder,
+    web, HttpResponse,
 };
 use log::error;
 use rust_wheel::common::util::net::{sse_message::SSEMessage, sse_stream::SseStream};
