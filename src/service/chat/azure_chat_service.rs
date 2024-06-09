@@ -2,12 +2,13 @@ use async_openai::types::{ChatCompletionRequestUserMessageArgs, CreateChatComple
 use async_openai::{config::AzureConfig, types::ChatCompletionRequestSystemMessageArgs, Client};
 use log::error;
 use rust_wheel::common::util::net::sse_message::SSEMessage;
+use tokio::task;
 use std::env;
 use std::error::Error;
 use tokio::sync::mpsc::UnboundedSender;
 
 pub async fn azure_chat(
-    tx: &UnboundedSender<SSEMessage<String>>,
+    tx: UnboundedSender<SSEMessage<String>>,
 ) -> Result<String, Box<dyn Error>> {
     let azure_chat_api_base =
         env::var("AZURE_CHAT_API_BASE").expect("AZURE_CHAT_API_BASE must be set");
@@ -24,7 +25,7 @@ pub async fn azure_chat(
 
 async fn chat_completion_example(
     client: &Client<AzureConfig>,
-    tx: &UnboundedSender<SSEMessage<String>>,
+    tx: UnboundedSender<SSEMessage<String>>,
 ) -> Result<String, Box<dyn Error>> {
     let request = CreateChatCompletionRequestArgs::default()
         .max_tokens(512u16)
@@ -42,24 +43,17 @@ async fn chat_completion_example(
         .build()?;
 
     let response = client.chat().create(request).await?;
-
-    println!("\nResponse:\n");
-    do_msg_send_sync(&"x".to_string(), tx, "ddd");
-    for choice in response.choices {
-        println!(
-            "{}: Role: {}  Content: {:?}",
-            choice.index, choice.message.role, choice.message.content
-        );
-        do_msg_send_sync(&"x".to_string(), tx, "ddd");
-        let content = choice.message.content;
-        if content.is_some() {
-            do_msg_send_sync(&content.unwrap(), tx, "chat");
+    task::spawn_blocking({
+        move || {
+            let rt = tokio::runtime::Runtime::new().unwrap();
+            rt.block_on(do_msg_send_sync(&"d".to_string(), &tx, "chat"));
         }
-    }
+    });
+    
     Ok("".to_owned())
 }
 
-pub fn do_msg_send_sync(
+pub async fn do_msg_send_sync(
     context: &String,
     tx: &UnboundedSender<SSEMessage<String>>,
     msg_type: &str,

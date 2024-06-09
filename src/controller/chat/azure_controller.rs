@@ -28,7 +28,7 @@ pub async fn ask(_params: actix_web_validator::Query<AskReq>) -> HttpResponse {
         UnboundedReceiver<SSEMessage<String>>,
     ) = tokio::sync::mpsc::unbounded_channel();
     task::spawn(async move {
-        let output = azure_chat(&tx).await;
+        let output = azure_chat(tx).await;
         if let Err(e) = output {
             error!("handle chat sse req error: {}", e);
         }
