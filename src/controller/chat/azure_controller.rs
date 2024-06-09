@@ -1,4 +1,4 @@
-use crate::model::req::chat::ask_req::AskReq;
+use crate::{model::req::chat::ask_req::AskReq, service::chat::azure_chat_service::azure_chat};
 use actix_web::{
     get,
     http::header::{CacheControl, CacheDirective},
@@ -28,29 +28,16 @@ pub async fn ask(_params: actix_web_validator::Query<AskReq>) -> HttpResponse {
         UnboundedReceiver<SSEMessage<String>>,
     ) = tokio::sync::mpsc::unbounded_channel();
     task::spawn(async move {
-        do_msg_send_sync(&"test".to_string(), &tx, "chat");
+        let output = azure_chat(tx).await;
+        if let Err(e) = output {
+            error!("handle chat sse req error: {}", e);
+        }
     });
     let response = HttpResponse::Ok()
         .insert_header(CacheControl(vec![CacheDirective::NoCache]))
         .content_type("text/event-stream")
         .streaming(SseStream { receiver: Some(rx) });
     response
-}
-
-pub fn do_msg_send_sync(
-    context: &String,
-    tx: &UnboundedSender<SSEMessage<String>>,
-    msg_type: &str,
-) {
-    let sse_msg: SSEMessage<String> =
-        SSEMessage::from_data(context.to_string(), &msg_type.to_string());
-    let send_result = tx.send(sse_msg);
-    match send_result {
-        Ok(_) => {}
-        Err(e) => {
-            error!("send chat response facing error: {}", e);
-        }
-    }
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {

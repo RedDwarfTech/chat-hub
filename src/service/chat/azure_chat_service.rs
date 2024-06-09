@@ -2,7 +2,6 @@ use async_openai::types::{ChatCompletionRequestUserMessageArgs, CreateChatComple
 use async_openai::{config::AzureConfig, types::ChatCompletionRequestSystemMessageArgs, Client};
 use log::error;
 use rust_wheel::common::util::net::sse_message::SSEMessage;
-use tokio::task;
 use std::env;
 use std::error::Error;
 use tokio::sync::mpsc::UnboundedSender;
@@ -42,18 +41,17 @@ async fn chat_completion_example(
         ])
         .build()?;
 
-    let _response = client.chat().create(request).await?;
-    task::spawn_blocking({
-        move || {
-            let rt = tokio::runtime::Runtime::new().unwrap();
-            rt.block_on(do_msg_send_sync(&"d".to_string(), &tx, "chat"));
+    let response = client.chat().create(request).await?;
+    for choice in response.choices {
+        let content = choice.message.content;
+        if content.is_some() {
+            do_msg_send_sync(&content.unwrap(), &tx, "chat");
         }
-    });
-    
+    }
     Ok("".to_owned())
 }
 
-pub async fn do_msg_send_sync(
+pub fn do_msg_send_sync(
     context: &String,
     tx: &UnboundedSender<SSEMessage<String>>,
     msg_type: &str,
