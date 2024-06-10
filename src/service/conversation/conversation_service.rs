@@ -1,10 +1,16 @@
-use diesel::{QueryDsl, QueryResult, TextExpressionMethods};
-use rust_wheel::{common::{query::pagination::Paginate, util::model_convert::map_pagination_res}, model::response::pagination_response::PaginationResponse};
+use diesel::{QueryDsl, QueryResult, RunQueryDsl, TextExpressionMethods};
+use rust_wheel::{
+    common::{query::pagination::Paginate, util::model_convert::map_pagination_res},
+    model::response::pagination_response::PaginationResponse,
+};
 
-use crate::{common::database::get_connection, model::{
-    diesel::ai::custom_ai_models::Conversation,
-    req::conversation::conversation_req::ConversationReq,
-}};
+use crate::{
+    common::database::get_connection,
+    model::{
+        diesel::ai::custom_ai_models::Conversation,
+        req::conversation::{conversation_add::ConversationAdd, conversation_req::ConversationReq},
+    },
+};
 
 pub fn conv_page(params: &ConversationReq) -> PaginationResponse<Vec<Conversation>> {
     use crate::model::diesel::ai::ai_schema::conversation as cv_tpl_table;
@@ -24,4 +30,13 @@ pub fn conv_page(params: &ConversationReq) -> PaginationResponse<Vec<Conversatio
         params.page_size.unwrap_or(10),
     );
     return page_map_result;
+}
+
+pub fn create_conversation(prompt: &String, uid: &i64) {
+    use crate::model::diesel::ai::ai_schema::conversation::dsl::*;
+    let new_conversation = ConversationAdd::gen_conversation(prompt, uid);
+    diesel::insert_into(conversation)
+        .values(new_conversation)
+        .get_result::<Conversation>(&mut get_connection())
+        .expect("failed to add new conversation or folder");
 }

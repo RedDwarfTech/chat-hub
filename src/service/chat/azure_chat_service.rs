@@ -1,4 +1,5 @@
 use crate::model::req::chat::ask_req::AskReq;
+use crate::service::conversation::conversation_service::create_conversation;
 use async_openai::types::{
     ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequestArgs,
     CreateChatCompletionResponse, CreateCompletionRequestArgs,
@@ -7,6 +8,7 @@ use async_openai::{config::AzureConfig, types::ChatCompletionRequestSystemMessag
 use futures::StreamExt;
 use log::error;
 use rust_wheel::common::util::net::sse_message::SSEMessage;
+use rust_wheel::model::user::login_user_info::LoginUserInfo;
 use std::env;
 use std::error::Error;
 use tokio::sync::mpsc::UnboundedSender;
@@ -14,6 +16,7 @@ use tokio::sync::mpsc::UnboundedSender;
 pub async fn azure_chat(
     tx: UnboundedSender<SSEMessage<String>>,
     req: &AskReq,
+    login_user_info: &LoginUserInfo,
 ) -> Result<String, Box<dyn Error>> {
     let azure_chat_api_base =
         env::var("AZURE_CHAT_API_BASE").expect("AZURE_CHAT_API_BASE must be set");
@@ -25,13 +28,14 @@ pub async fn azure_chat(
         .with_deployment_id(deployment_id)
         .with_api_key(api_key);
     let client = Client::with_config(config);
-    return chat_completion(&client, tx, req).await;
+    return chat_completion(&client, tx, req, login_user_info).await;
 }
 
 async fn chat_completion(
     client: &Client<AzureConfig>,
     tx: UnboundedSender<SSEMessage<String>>,
     req: &AskReq,
+    login_user_info: &LoginUserInfo,
 ) -> Result<String, Box<dyn Error>> {
     let request = CreateChatCompletionRequestArgs::default()
         .max_tokens(512u16)
@@ -55,6 +59,9 @@ async fn chat_completion(
         return Ok("".to_owned());
     }
     do_msg_send_sync(&msg_string.unwrap(), &tx, "chat");
+    if req.cid.is_none() {
+        create_conversation(&req.prompt, &login_user_info.userId);
+    }
     Ok("".to_owned())
 }
 

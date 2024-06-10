@@ -5,7 +5,7 @@ use actix_web::{
     web, HttpResponse,
 };
 use log::error;
-use rust_wheel::common::util::net::{sse_message::SSEMessage, sse_stream::SseStream};
+use rust_wheel::{common::util::net::{sse_message::SSEMessage, sse_stream::SseStream}, model::user::login_user_info::LoginUserInfo};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task,
@@ -22,13 +22,13 @@ use tokio::{
     )
 )]
 #[get("/stream/chat/ask")]
-pub async fn ask(params: actix_web_validator::Query<AskReq>) -> HttpResponse {
+pub async fn ask(params: actix_web_validator::Query<AskReq>, login_user_info: LoginUserInfo) -> HttpResponse {
     let (tx, rx): (
         UnboundedSender<SSEMessage<String>>,
         UnboundedReceiver<SSEMessage<String>>,
     ) = tokio::sync::mpsc::unbounded_channel();
     task::spawn(async move {
-        let output = azure_chat(tx, &params.0).await;
+        let output = azure_chat(tx, &params.0, &login_user_info).await;
         if let Err(e) = output {
             error!("handle chat sse req error: {}", e);
         }
