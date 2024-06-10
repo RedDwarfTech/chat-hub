@@ -6,10 +6,10 @@ use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
 ///
 /// Ask
 #[utoipa::path(
-    context_path = "/ai/user/login",
+    context_path = "/ai/conversation/page",
     path = "/",
     responses(
-        (status = 200, description = "support user login")
+        (status = 200, description = "conversation page")
     )
 )]
 #[get("/page")]
