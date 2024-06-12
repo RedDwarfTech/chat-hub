@@ -59,7 +59,7 @@ async fn chat_completion(
         return Ok("".to_owned());
     }
     do_msg_send_sync(&msg_string.unwrap(), &tx, "chat");
-    if req.cid.is_none() {
+    if req.cid.is_none() || req.cid.unwrap() == 0 {
         create_conversation(&req.prompt, &login_user_info.userId);
     }
     Ok("".to_owned())
