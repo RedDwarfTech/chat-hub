@@ -6,16 +6,17 @@ use actix_web::App;
 use actix_web::HttpServer;
 use controller::chat::azure_controller;
 use controller::conversation::conversation_controller;
+use controller::conversation::conversation_item_controller;
 use controller::monitor::health_controller;
 use rust_wheel::config::app::app_conf_reader::get_app_config;
+use utoipa::OpenApi;
 use utoipa_rapidoc::RapiDoc;
 use utoipa_swagger_ui::SwaggerUi;
-use utoipa::OpenApi;
 
-pub mod controller;
-pub mod service;
-pub mod model;
 pub mod common;
+pub mod controller;
+pub mod model;
+pub mod service;
 mod swagger_docs;
 mod types;
 
@@ -29,6 +30,7 @@ async fn main() -> std::io::Result<()> {
             .configure(azure_controller::config)
             .configure(health_controller::config)
             .configure(conversation_controller::config)
+            .configure(conversation_item_controller::config)
             .service(
                 SwaggerUi::new("/docs-v1/{_:.*}").url("/api-docs/openapi.json", ApiDoc::openapi()),
             )
