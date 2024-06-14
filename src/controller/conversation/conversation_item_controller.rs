@@ -5,14 +5,14 @@ use crate::{
 use actix_web::{get, web, HttpResponse};
 use rust_wheel::common::wrapper::actix_http_resp::box_actix_rest_response;
 
-/// Ask
+/// Conversation item
 ///
-/// Ask
+/// Conversation item
 #[utoipa::path(
     context_path = "/ai/conversation/item/page",
     path = "/",
     responses(
-        (status = 200, description = "conversation page")
+        (status = 200, description = "conversation item page")
     )
 )]
 #[get("/page")]
