@@ -24,6 +24,6 @@ pub async fn conversation_item_page(
 }
 
 pub fn config(conf: &mut web::ServiceConfig) {
-    let scope = web::scope("/ai/conversation/item").service(conversation_item_page);
+    let scope = web::scope("/ai/conversation-item").service(conversation_item_page);
     conf.service(scope);
 }
