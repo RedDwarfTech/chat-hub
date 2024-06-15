@@ -59,8 +59,10 @@ async fn chat_completion(
         error!("serial json failed,{}", e);
         return Ok("".to_owned());
     }
-    let msg = msg_string.unwrap();
-    do_msg_send_sync(&msg, &tx, "chat");
+    let send_msg = msg_string.unwrap();
+    do_msg_send_sync(&send_msg, &tx, "chat");
+    let choice = response.choices[0].clone();
+    let msg = choice.message.content.unwrap_or_default();
     if req.cid.is_none() || req.cid.unwrap() == 0 {
         let conv = create_conversation(&req.prompt, &login_user_info.userId);
         create_conversation_item(&req.prompt, &msg, conv.id);
