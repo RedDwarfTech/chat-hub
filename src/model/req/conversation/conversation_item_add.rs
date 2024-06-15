@@ -26,7 +26,7 @@ impl ConversationItemAdd {
             question: Some(prompt.to_string()),
             answer: Some(answer.to_string()),
             question_time: Some(get_current_millisecond()),
-            answer_time: Some(get_current_millisecond()),
+            answer_time: Some(get_current_millisecond() + 1000),
             cid: cid,
             req_id: Some(uuid_string),
         }
