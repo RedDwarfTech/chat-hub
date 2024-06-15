@@ -1,4 +1,5 @@
 use crate::model::req::chat::ask_req::AskReq;
+use crate::service::conversation::conversation_item_service::create_conversation_item;
 use crate::service::conversation::conversation_service::create_conversation;
 use async_openai::types::{
     ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequestArgs,
@@ -58,10 +59,13 @@ async fn chat_completion(
         error!("serial json failed,{}", e);
         return Ok("".to_owned());
     }
-    do_msg_send_sync(&msg_string.unwrap(), &tx, "chat");
+    let msg = msg_string.unwrap();
+    do_msg_send_sync(&msg, &tx, "chat");
     if req.cid.is_none() || req.cid.unwrap() == 0 {
-        create_conversation(&req.prompt, &login_user_info.userId);
+        let conv = create_conversation(&req.prompt, &login_user_info.userId);
+        create_conversation_item(&req.prompt, &msg, conv.id);
     }
+    create_conversation_item(&req.prompt, &msg, req.cid.unwrap());
     Ok("".to_owned())
 }
 

@@ -7,9 +7,9 @@ use rust_wheel::{
 use crate::{
     common::database::get_connection,
     model::{
-        diesel::ai::custom_ai_models::{Conversation, ConversationItem},
+        diesel::ai::custom_ai_models::ConversationItem,
         req::conversation::{
-            conversation_add::ConversationAdd, conversation_item_req::ConversationItemReq,
+            conversation_item_add::ConversationItemAdd, conversation_item_req::ConversationItemReq,
         },
     },
 };
@@ -31,11 +31,11 @@ pub fn conv_item_page(params: &ConversationItemReq) -> PaginationResponse<Vec<Co
     return page_map_result;
 }
 
-pub fn create_conversation_item(prompt: &String, uid: &i64) {
-    use crate::model::diesel::ai::ai_schema::conversation::dsl::*;
-    let new_conversation = ConversationAdd::gen_conversation(prompt, uid);
-    diesel::insert_into(conversation)
+pub fn create_conversation_item(prompt: &String, ans: &String, input_cid: i64) {
+    use crate::model::diesel::ai::ai_schema::conversation_item::dsl::*;
+    let new_conversation = ConversationItemAdd::gen_conversation_item(prompt, ans, input_cid);
+    diesel::insert_into(conversation_item)
         .values(new_conversation)
-        .get_result::<Conversation>(&mut get_connection())
-        .expect("failed to add new conversation or folder");
+        .get_result::<ConversationItem>(&mut get_connection())
+        .expect("failed to add new conversation item");
 }

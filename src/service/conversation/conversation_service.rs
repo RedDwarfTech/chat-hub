@@ -32,11 +32,12 @@ pub fn conv_page(params: &ConversationReq) -> PaginationResponse<Vec<Conversatio
     return page_map_result;
 }
 
-pub fn create_conversation(prompt: &String, uid: &i64) {
+pub fn create_conversation(prompt: &String, uid: &i64) -> Conversation{
     use crate::model::diesel::ai::ai_schema::conversation::dsl::*;
     let new_conversation = ConversationAdd::gen_conversation(prompt, uid);
-    diesel::insert_into(conversation)
+    let conv = diesel::insert_into(conversation)
         .values(new_conversation)
         .get_result::<Conversation>(&mut get_connection())
         .expect("failed to add new conversation or folder");
+    return conv;
 }
