@@ -42,19 +42,25 @@ pub async fn ask(
     params: actix_web_validator::Query<AskReq>,
     login_user_info: LoginUserInfo,
 ) -> HttpResponse {
-    if login_user_info.vipExpireTime < get_current_millisecond() {
-        let login_failed_key = get_app_config("chat.chat_per_day_key");
-        let user_failed_key = format!("{}:{}", login_failed_key, login_user_info.userId);
-        let chat_count: Option<String> = sync_get_str(&user_failed_key);
-        if chat_count.is_none() {
-            increase_chaht_count(&user_failed_key);
-        }
-        if chat_count.unwrap().parse::<i32>().unwrap() > 2 {
-            return box_err_actix_rest_response(ChatError::ExceedTheChatPerDayLimit);
-        }else{
-            increase_chaht_count(&user_failed_key);
-        }
+    if login_user_info.vipExpireTime >= get_current_millisecond() {
+        return handle_chat(&params.0, &login_user_info);
     }
+    let login_failed_key = get_app_config("chat.chat_per_day_key");
+    let user_failed_key = format!("{}:{}", login_failed_key, login_user_info.userId);
+    let chat_count: Option<String> = sync_get_str(&user_failed_key);
+    if chat_count.is_none() {
+        increase_chaht_count(&user_failed_key);
+        return handle_chat(&params.0, &login_user_info);
+    }
+    if chat_count.unwrap().parse::<i32>().unwrap() > 2 {
+        return box_err_actix_rest_response(ChatError::ExceedTheChatPerDayLimit);
+    } else {
+        increase_chaht_count(&user_failed_key);
+        return handle_chat(&params.0, &login_user_info);
+    }
+}
+
+fn handle_chat(req: &AskReq, login_user_info: &LoginUserInfo) -> HttpResponse {
     let (tx, rx): (
         UnboundedSender<SSEMessage<String>>,
         UnboundedReceiver<SSEMessage<String>>,
