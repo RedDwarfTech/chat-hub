@@ -65,8 +65,10 @@ fn handle_chat(req: &AskReq, login_user_info: &LoginUserInfo) -> HttpResponse {
         UnboundedSender<SSEMessage<String>>,
         UnboundedReceiver<SSEMessage<String>>,
     ) = tokio::sync::mpsc::unbounded_channel();
+    let req1 = req.clone();
+    let lu = login_user_info.clone();
     task::spawn(async move {
-        let output = azure_chat(tx, &params.0, &login_user_info).await;
+        let output = azure_chat(tx, &req1, &lu).await;
         if let Err(e) = output {
             error!("handle chat sse req error: {}", e);
         }
