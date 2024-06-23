@@ -7,7 +7,6 @@ use actix_web::{
     http::header::{CacheControl, CacheDirective},
     web, HttpResponse,
 };
-use async_openai::types::CreateCompletionResponse;
 use log::error;
 use rust_wheel::{
     common::util::{
