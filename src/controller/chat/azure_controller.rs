@@ -49,7 +49,7 @@ pub async fn ask(
         increase_chaht_count(&user_failed_key);
         return handle_chat(&params.0, &login_user_info);
     }
-    if chat_count.unwrap().parse::<i32>().unwrap() > 2 {
+    if chat_count.unwrap().parse::<i32>().unwrap() > 20 {
         let (tx, rx): (
             UnboundedSender<SSEMessage<String>>,
             UnboundedReceiver<SSEMessage<String>>,
