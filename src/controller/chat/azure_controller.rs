@@ -1,12 +1,13 @@
 use crate::{
     model::req::chat::ask_req::AskReq,
-    service::chat::azure_chat_service::{azure_chat, do_msg_send_sync},
+    service::chat::azure_chat_service::{azure_chat, do_custom_msg_send_sync},
 };
 use actix_web::{
     get,
     http::header::{CacheControl, CacheDirective},
     web, HttpResponse,
 };
+use async_openai::types::CreateCompletionResponse;
 use log::error;
 use rust_wheel::{
     common::util::{
@@ -49,12 +50,12 @@ pub async fn ask(
         increase_chaht_count(&user_failed_key);
         return handle_chat(&params.0, &login_user_info);
     }
-    if chat_count.unwrap().parse::<i32>().unwrap() > 20 {
+    if chat_count.unwrap().parse::<i32>().unwrap() > 2 {
         let (tx, rx): (
             UnboundedSender<SSEMessage<String>>,
             UnboundedReceiver<SSEMessage<String>>,
         ) = tokio::sync::mpsc::unbounded_channel();
-        do_msg_send_sync(&"vip-expire".to_string(), &tx, "chat");
+        do_custom_msg_send_sync(&"vip-expired".to_string(), &tx, "chat");
         let response = HttpResponse::Ok()
             .insert_header(CacheControl(vec![CacheDirective::NoCache]))
             .content_type("text/event-stream")

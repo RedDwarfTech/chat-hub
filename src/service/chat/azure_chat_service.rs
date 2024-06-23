@@ -2,17 +2,20 @@ use crate::model::req::chat::ask_req::AskReq;
 use crate::service::conversation::conversation_item_service::create_conversation_item;
 use crate::service::conversation::conversation_service::create_conversation;
 use async_openai::types::{
-    ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequestArgs,
-    CreateChatCompletionResponse, CreateCompletionRequestArgs,
+    ChatCompletionRequestUserMessageArgs, Choice, CompletionFinishReason,
+    CreateChatCompletionRequestArgs, CreateChatCompletionResponse, CreateCompletionRequestArgs,
+    CreateCompletionResponse,
 };
 use async_openai::{config::AzureConfig, types::ChatCompletionRequestSystemMessageArgs, Client};
 use futures::StreamExt;
 use log::error;
 use rust_wheel::common::util::net::sse_message::SSEMessage;
+use rust_wheel::common::util::time_util::get_current_millisecond;
 use rust_wheel::model::user::login_user_info::LoginUserInfo;
 use std::env;
 use std::error::Error;
 use tokio::sync::mpsc::UnboundedSender;
+use uuid::Uuid;
 
 pub async fn azure_chat(
     tx: UnboundedSender<SSEMessage<String>>,
@@ -22,7 +25,7 @@ pub async fn azure_chat(
     let azure_chat_api_base =
         env::var("AZURE_CHAT_API_BASE").expect("AZURE_CHAT_API_BASE must be set");
     let deployment_id = env::var("DEPLOYMENT_ID").expect("DEPLOYMENT_ID must be set");
-    let api_key = env::var("AZURE_OPENAI_KEY").expect("API_KEY must be set");
+    let api_key = env::var("AZURE_OPENAI_KEY").expect("AZURE_OPENAI_KEY must be set");
     let config = AzureConfig::new()
         .with_api_base(azure_chat_api_base)
         .with_api_version("2023-03-15-preview")
@@ -112,6 +115,42 @@ pub fn do_msg_send_sync(
 ) {
     let sse_msg: SSEMessage<String> =
         SSEMessage::from_data(context.to_string(), &msg_type.to_string());
+    let send_result = tx.send(sse_msg);
+    match send_result {
+        Ok(_) => {}
+        Err(e) => {
+            error!("send chat response facing error: {}", e);
+        }
+    }
+}
+
+pub fn do_custom_msg_send_sync(
+    context: &String,
+    tx: &UnboundedSender<SSEMessage<String>>,
+    msg_type: &str,
+) {
+    let uuid = Uuid::new_v4();
+    let uuid_string = uuid.to_string().replace("-", "");
+    let mut ch: Vec<Choice> = Vec::new();
+    let choice = Choice {
+        text: context.to_string(),
+        index: 0,
+        logprobs: None,
+        finish_reason: Some(CompletionFinishReason::Stop),
+    };
+    ch.push(choice);
+    let msg = CreateCompletionResponse {
+        id: uuid_string,
+        choices: ch,
+        created: get_current_millisecond() as u32,
+        model: "3.5-turbo".to_string(),
+        system_fingerprint: None,
+        object: "".to_string(),
+        usage: None,
+    };
+    let msg_string = serde_json::to_string(&msg);
+    let sse_msg: SSEMessage<String> =
+        SSEMessage::from_data(msg_string.unwrap().to_string(), &msg_type.to_string());
     let send_result = tx.send(sse_msg);
     match send_result {
         Ok(_) => {}
