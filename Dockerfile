@@ -1,16 +1,16 @@
-ARG BASE_IMAGE=rust:1.72-bullseye
+ARG BASE_IMAGE=dolphinjiang/rust-musl-builder:1.78.0
 FROM ${BASE_IMAGE} AS builder
-WORKDIR /app
-COPY . /app
-RUN rustup default stable
+ADD --chown=rust:rust . ./
 RUN cargo build --release
 
-FROM debian:bullseye-slim
+FROM alpine:3.18.2
 LABEL maintainer="jiangtingqiang@gmail.com"
 WORKDIR /app
 ENV ROCKET_ADDRESS=0.0.0.0
-COPY --from=builder /app/settings.toml /app
-COPY --from=builder /app/target/release/chat-hub /app/
-COPY --from=builder /app/log4rs.yaml /app
-RUN apt-get update -y && apt-get install curl libpq5 -y
+COPY --from=builder /home/rust/src/settings.toml /app
+COPY --from=builder /home/rust/src/target/x86_64-unknown-linux-musl/release/infra-server /app
+COPY --from=builder /home/rust/src/log4rs.yaml /app
+ENV TZ=Asia/Shanghai
+# RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+RUN apk update && apk add curl websocat zlib zlib-dev openssl-dev openssl tzdata musl-locales
 CMD ["./chat-hub"]
