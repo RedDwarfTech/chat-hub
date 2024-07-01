@@ -8,7 +8,7 @@ LABEL maintainer="jiangtingqiang@gmail.com"
 WORKDIR /app
 ENV ROCKET_ADDRESS=0.0.0.0
 COPY --from=builder /home/rust/src/settings.toml /app
-COPY --from=builder /home/rust/src/target/x86_64-unknown-linux-musl/release/infra-server /app
+COPY --from=builder /home/rust/src/target/x86_64-unknown-linux-musl/release/chat-hub /app
 COPY --from=builder /home/rust/src/log4rs.yaml /app
 ENV TZ=Asia/Shanghai
 # RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
