@@ -42,6 +42,10 @@ jobs:
         file: Dockerfile
         push: true
         tags: ${{ secrets.ALI_DOCKER_HUB_REGISTRY }}/reddwarf-pro/chat-hub-server:${{ github.sha }} 
+        # https://stackoverflow.com/questions/75521775/buildx-docker-image-claims-to-be-a-manifest-list
+        # https://smartservice.console.aliyun.com/service/chat?spm=5176.smartservice_service_create_ticket_step_2.0.0.323d3f1bH4Z7fR&id=0005PCJF1W
+        provenance: false
+        sbom: false
 
     - name: deploy to cluster
       uses: steebchen/kubectl@v2.0.0
