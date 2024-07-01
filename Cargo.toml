@@ -40,3 +40,5 @@ uuid = { version = "1.4.1", features = [
     "macro-diagnostics", # Enable better diagnostics for compile-time UUIDs
 ] }
 thiserror = "1.0.61"
+openssl = "*"
+openssl-probe = "0.1.2"
