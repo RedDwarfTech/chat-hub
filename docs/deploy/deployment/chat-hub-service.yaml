@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chat-hub-service
+  namespace: reddwarf-pro
+  labels:
+    app: chat-hub-service
+    k8slens-edit-resource-version: v1
+status:
+  observedGeneration: 40
+  replicas: 1
+  updatedReplicas: 1
+  readyReplicas: 1
+  availableReplicas: 1
+  conditions:
+    - type: Available
+      status: 'True'
+      lastUpdateTime: '2024-06-09T03:35:36Z'
+      lastTransitionTime: '2024-06-09T03:35:36Z'
+      reason: MinimumReplicasAvailable
+      message: Deployment has minimum availability.
+    - type: Progressing
+      status: 'True'
+      lastUpdateTime: '2024-07-01T16:35:20Z'
+      lastTransitionTime: '2024-06-08T14:19:58Z'
+      reason: NewReplicaSetAvailable
+      message: ReplicaSet "chat-hub-service-5b5985d9c9" has successfully progressed.
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chat-hub-service
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: chat-hub-service
+      annotations:
+        kubectl.kubernetes.io/restartedAt: '2024-05-07T23:36:36+08:00'
+        telepresence.getambassador.io/restartedAt: '2024-05-15T14:57:56Z'
+    spec:
+      containers:
+        - name: chat-hub-service
+          image: >-
+            registry.cn-hongkong.aliyuncs.com/reddwarf-pro/chat-hub-server:c69cde5222339052f374bc28a26abb1f3b8b2177
+          ports:
+            - containerPort: 8081
+              protocol: TCP
+          env:
+            - name: AZURE_CHAT_API_BASE
+              valueFrom:
+                configMapKeyRef:
+                  name: chat-hub-service-pro-config
+                  key: azure_chat_api_base
+            - name: DEPLOYMENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: chat-hub-service-pro-config
+                  key: deployment_id
+            - name: AZURE_OPENAI_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: chat-hub-service-pro-config
+                  key: azure_openai_key
+            - name: AI_DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chat-hub-service-pro-config
+                  key: ai_database_url
+            - name: SELLER_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: chat-hub-service-pro-config
+                  key: seller_id
+            - name: ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: chat-hub-service-pro-config
+                  key: env
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: chat-hub-service-pro-config
+                  key: redis_addr
+          resources:
+            limits:
+              cpu: 100m
+              memory: 60Mi
+            requests:
+              cpu: 20m
+              memory: 15Mi
+          livenessProbe:
+            httpGet:
+              path: /chat/actuator/liveness
+              port: 8081
+              scheme: HTTP
+            initialDelaySeconds: 15
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      imagePullSecrets:
+        - name: hongkong-regcred
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
