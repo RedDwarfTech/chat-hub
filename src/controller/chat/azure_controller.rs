@@ -1,6 +1,10 @@
 use crate::{
+    common::error::chat_error::ChatError,
     model::req::chat::ask_req::AskReq,
-    service::chat::azure_chat_service::{azure_chat, do_custom_msg_send_sync},
+    service::{
+        chat::azure_chat_service::{azure_chat, do_custom_msg_send_sync},
+        conversation::conversation_item_service::count_today_chat,
+    },
 };
 use actix_web::{
     get,
@@ -9,9 +13,12 @@ use actix_web::{
 };
 use log::error;
 use rust_wheel::{
-    common::util::{
-        net::{sse_message::SSEMessage, sse_stream::SseStream},
-        time_util::get_current_millisecond,
+    common::{
+        util::{
+            net::{sse_message::SSEMessage, sse_stream::SseStream},
+            time_util::get_current_millisecond,
+        },
+        wrapper::actix_http_resp::box_err_actix_rest_response,
     },
     config::{
         app::app_conf_reader::get_app_config,
@@ -73,6 +80,10 @@ fn handle_chat(req: &AskReq, login_user_info: &LoginUserInfo) -> HttpResponse {
     ) = tokio::sync::mpsc::unbounded_channel();
     let ask_req = req.clone();
     let lu = login_user_info.clone();
+    let today_chat_count = count_today_chat(&lu.userId);
+    if today_chat_count > 200 {
+        return box_err_actix_rest_response(ChatError::ExceedTheChatPerDayLimit);
+    }
     task::spawn(async move {
         let output = azure_chat(tx, &ask_req, &lu).await;
         if let Err(e) = output {

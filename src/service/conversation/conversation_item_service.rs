@@ -46,7 +46,7 @@ pub fn create_conversation_item(prompt: &String, ans: &String, input_cid: i64, u
         .expect("failed to add new conversation item");
 }
 
-pub fn count_today_chat(uid: i64) -> i64 {
+pub fn count_today_chat(uid: &i64) -> i64 {
     use crate::model::diesel::ai::ai_schema::conversation_item as query_table;
     let end = end_of_today();
     let start = start_of_today();
