@@ -19,6 +19,7 @@ table! {
         answer_time -> Nullable<Int8>,
         cid -> Int8,
         req_id -> Nullable<Varchar>,
+        user_id -> Int8,
     }
 }
 

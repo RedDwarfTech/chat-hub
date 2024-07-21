@@ -29,5 +29,6 @@ pub struct ConversationItem {
     pub answer_time: Option<i64>,
     pub cid: i64,
     pub req_id: Option<String>,
+    pub user_id: i64,
 }
 

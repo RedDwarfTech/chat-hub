@@ -42,11 +42,11 @@ pub async fn ask(
     if login_user_info.vipExpireTime >= get_current_millisecond() {
         return handle_chat(&params.0, &login_user_info);
     }
-    let login_failed_key = get_app_config("chat.chat_per_day_key");
-    let user_failed_key = format!("{}:{}", login_failed_key, login_user_info.userId);
+    let chat_perday_key = get_app_config("chat.chat_per_day_key");
+    let user_failed_key = format!("{}:{}", chat_perday_key, login_user_info.userId);
     let chat_count: Option<String> = sync_get_str(&user_failed_key);
     if chat_count.is_none() {
-        increase_chaht_count(&user_failed_key);
+        increase_user_chat_count(&user_failed_key);
         return handle_chat(&params.0, &login_user_info);
     }
     if chat_count.unwrap().parse::<i32>().unwrap() > 2 {
@@ -61,7 +61,7 @@ pub async fn ask(
             .streaming(SseStream { receiver: Some(rx) });
         response
     } else {
-        increase_chaht_count(&user_failed_key);
+        increase_user_chat_count(&user_failed_key);
         return handle_chat(&params.0, &login_user_info);
     }
 }
@@ -71,10 +71,10 @@ fn handle_chat(req: &AskReq, login_user_info: &LoginUserInfo) -> HttpResponse {
         UnboundedSender<SSEMessage<String>>,
         UnboundedReceiver<SSEMessage<String>>,
     ) = tokio::sync::mpsc::unbounded_channel();
-    let req1 = req.clone();
+    let ask_req = req.clone();
     let lu = login_user_info.clone();
     task::spawn(async move {
-        let output = azure_chat(tx, &req1, &lu).await;
+        let output = azure_chat(tx, &ask_req, &lu).await;
         if let Err(e) = output {
             error!("handle chat sse req error: {}", e);
         }
@@ -86,7 +86,7 @@ fn handle_chat(req: &AskReq, login_user_info: &LoginUserInfo) -> HttpResponse {
     response
 }
 
-fn increase_chaht_count(cached_key: &String) {
+fn increase_user_chat_count(cached_key: &String) {
     let app_str = sync_get_str(&cached_key);
     if app_str.is_none() {
         set_str(&cached_key, "1", 86400);

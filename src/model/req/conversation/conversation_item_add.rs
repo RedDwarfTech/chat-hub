@@ -14,10 +14,11 @@ pub struct ConversationItemAdd {
     pub answer_time: Option<i64>,
     pub cid: i64,
     pub req_id: Option<String>,
+    pub user_id: i64,
 }
 
 impl ConversationItemAdd {
-    pub(crate) fn gen_conversation_item(prompt: &String, answer: &String, cid: i64) ->Self {
+    pub(crate) fn gen_conversation_item(prompt: &String, answer: &String, cid: i64, uid: i64) ->Self {
         let uuid = Uuid::new_v4();
         let uuid_string = uuid.to_string().replace("-", "");
         Self {
@@ -29,6 +30,7 @@ impl ConversationItemAdd {
             answer_time: Some(get_current_millisecond() + 1000),
             cid: cid,
             req_id: Some(uuid_string),
+            user_id: uid
         }
     }
 }

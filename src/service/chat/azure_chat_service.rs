@@ -68,9 +68,9 @@ async fn chat_completion(
     let msg = choice.message.content.unwrap_or_default();
     if req.cid.is_none() || req.cid.unwrap() == 0 {
         let conv = create_conversation(&req.prompt, &login_user_info.userId);
-        create_conversation_item(&req.prompt, &msg, conv.id);
+        create_conversation_item(&req.prompt, &msg, conv.id, login_user_info.userId);
     }
-    create_conversation_item(&req.prompt, &msg, req.cid.unwrap());
+    create_conversation_item(&req.prompt, &msg, req.cid.unwrap(), login_user_info.userId);
     Ok("".to_owned())
 }
 
